@@ -1,0 +1,58 @@
+{
+  "name": "open-quiz-bank",
+  "version": "0.0.0",
+  "description": "Open, seedable bilingual (de/en) quiz question bank with a small query API. Code MIT, questions CC0.",
+  "author": "Tamino Martinius <dev@zaku.eu>",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "module": "./esm/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": { "types": "./esm/index.d.ts", "default": "./esm/index.js" },
+      "require": { "types": "./dist/index.d.ts", "default": "./dist/index.js" }
+    },
+    "./en": {
+      "import": { "types": "./esm/en.d.ts", "default": "./esm/en.js" },
+      "require": { "types": "./dist/en.d.ts", "default": "./dist/en.js" }
+    },
+    "./de": {
+      "import": { "types": "./esm/de.d.ts", "default": "./esm/de.js" },
+      "require": { "types": "./dist/de.d.ts", "default": "./dist/de.js" }
+    }
+  },
+  "files": ["dist", "esm", "src"],
+  "repository": { "type": "git", "url": "https://github.com/tamino-martinius/node-open-quiz-bank.git" },
+  "keywords": ["quiz", "trivia", "questions", "bank", "quizzes", "german", "english", "cc0", "seeded", "typescript"],
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "gen": "node scripts/build-manifest.mjs",
+    "prebuild": "npm run gen",
+    "compile": "rm -rf dist esm && npm run gen && tsc -p tsconfig.json && tsc -p tsconfig.cjs.json --noCheck && node .github/scripts/write-build-markers.mjs",
+    "lint": "eslint .",
+    "pretest": "npm run lint",
+    "test": "jest",
+    "coverage": "rm -rf coverage* && jest --coverage",
+    "test:scripts": "node --test .github/scripts/__tests__/*.mjs",
+    "ci": "npm run coverage",
+    "watch": "tsc -w -p tsconfig.json",
+    "preversion": "npm run compile && git add ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.4.1",
+    "jest": "^30.4.2",
+    "prettier": "^3.4.2",
+    "ts-jest": "^29.4.11",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.60.1"
+  },
+  "jest": {
+    "transform": {
+      ".ts": ["ts-jest", { "tsconfig": "tsconfig.jest.json" }]
+    },
+    "testRegex": "\\.(test|spec)\\.ts$",
+    "moduleFileExtensions": ["ts", "tsx", "js", "json"],
+    "moduleNameMapper": { "^(\\.{1,2}/.*)\\.js$": "$1" }
+  }
+}
