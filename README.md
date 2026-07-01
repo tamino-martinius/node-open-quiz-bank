@@ -79,27 +79,16 @@ const qs = getQuestions({ categories: ['videogames'], count: 5, seed: 123 });
 ```ts
 import { createQuiz, toChoices } from 'open-quiz-bank';
 
-const quiz = await createQuiz({ lang: 'en', categories: ['science'], count: 20, seed: 7 });
+// A quiz session walks the FULL matching pool in a seeded order — it does NOT
+// use `count`. Narrow the query (categories / tags / difficulty) to size the pool.
+const quiz = await createQuiz({ lang: 'en', categories: ['science'], seed: 7 });
 
-console.log(quiz.remaining()); // 20
+const first = quiz.next();          // one question (undefined once exhausted)
+const nextThree = quiz.next(3);     // a batch of the next three
+console.log(quiz.remaining());      // questions left = poolSize - 4
+console.log(quiz.served().length);  // 4
 
-// Get one question at a time
-const q1 = quiz.next();
-if (q1) {
-  const choices = toChoices(q1, /* seed */ 99);
-  console.log(choices.options);          // ['A', 'B', 'C', 'D'] shuffled
-  console.log(choices.correctIndex);     // index of the correct answer
-}
-
-// Get a batch
-const nextThree = quiz.next(3); // QuizQuestion[]
-
-console.log(quiz.served()); // IDs of questions served so far
-console.log(quiz.remaining()); // 16
-
-// Start the same quiz over from the beginning
-quiz.reset();
-console.log(quiz.remaining()); // 20 again
+quiz.reset();                       // restart the identical seeded order
 ```
 
 `toChoices` can also be used standalone with a sync per-language import:
@@ -116,7 +105,7 @@ const { options, correctIndex } = toChoices(q, 5);
 - When `seed` is provided, `getQuestions`, `createQuiz`, and `toChoices` are fully deterministic: the same seed always returns the same questions in the same order with the same shuffled choices.
 - When `seed` is omitted, selection order and `toChoices` shuffling use `Math.random()`.
 - The `count` parameter is a soft cap: you may receive fewer results if the filtered pool is smaller.
-- `createQuiz` ignores `count` when ordering — it filters and orders the full matching pool; use the `count` field in your query to pre-limit the pool size.
+- `createQuiz` ignores `count` — a session always walks the full matching pool in the seeded order. To get a fixed number of questions, use `getQuestions({ …, count })`; to make a shorter session, narrow the query with `categories` / `tags` / `difficulty`.
 
 ## API reference
 
