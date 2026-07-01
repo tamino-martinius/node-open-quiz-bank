@@ -14,15 +14,12 @@ test('de data is valid', () => {
   expect(validateBank(DE, categoryIds)).toEqual([]);
 });
 
-test('manifest counts match actual per-category counts', () => {
-  const actual: Record<string, number> = {};
-  for (const q of [...EN, ...DE]) {
-    const key = `${q.lang}:${q.tags[0]}`;
-    actual[key] = (actual[key] ?? 0) + 1;
-  }
-  for (const lang of ['en', 'de'] as const)
-    for (const [cat, n] of Object.entries(COUNTS[lang]))
-      expect(actual[`${lang}:${cat}`]).toBe(n);
+test('manifest counts exactly match actual per-category counts (both directions)', () => {
+  const actual = { en: {} as Record<string, number>, de: {} as Record<string, number> };
+  for (const q of EN) actual.en[q.tags[0]] = (actual.en[q.tags[0]] ?? 0) + 1;
+  for (const q of DE) actual.de[q.tags[0]] = (actual.de[q.tags[0]] ?? 0) + 1;
+  expect(actual.en).toEqual(COUNTS.en);
+  expect(actual.de).toEqual(COUNTS.de);
 });
 
 test('totals hold', () => {
