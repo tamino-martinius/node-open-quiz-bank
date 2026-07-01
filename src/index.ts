@@ -1,25 +1,49 @@
-import type { QuizQuestion, QuestionQuery, CategoryMeta, Lang, Quiz } from './types.js';
+import type {
+  QuizQuestion,
+  QuestionQuery,
+  CategoryMeta,
+  Lang,
+  Quiz,
+} from './types.js';
 import { selectQuestions, filterQuestions } from './core/select.js';
 import { createQuizFromPool } from './core/quiz.js';
 import { CATEGORIES } from './core/categories.js';
 import { CATEGORY_IDS } from './core/manifest.js';
 
-export type { QuizQuestion, QuestionQuery, CategoryMeta, Lang, Quiz, Difficulty, DifficultyRange, Choices } from './types.js';
+export type {
+  QuizQuestion,
+  QuestionQuery,
+  CategoryMeta,
+  Lang,
+  Quiz,
+  Difficulty,
+  DifficultyRange,
+  Choices,
+} from './types.js';
 export { toChoices } from './core/choices.js';
 
 // The literal './data/' prefix lets bundlers (Webpack/Vite/esbuild) code-split each category.
-async function loadCategory(lang: Lang, category: string): Promise<readonly QuizQuestion[]> {
-  const mod = (await import(`./data/${lang}/${category}.js`)) as { QUESTIONS: readonly QuizQuestion[] };
+async function loadCategory(
+  lang: Lang,
+  category: string,
+): Promise<readonly QuizQuestion[]> {
+  const mod = (await import(`./data/${lang}/${category}.js`)) as {
+    QUESTIONS: readonly QuizQuestion[];
+  };
   return mod.QUESTIONS;
 }
 
 async function loadPool(query: QuestionQuery): Promise<QuizQuestion[]> {
   const cats = query.categories ?? CATEGORY_IDS[query.lang];
-  const chunks = await Promise.all(cats.map((c) => loadCategory(query.lang, c)));
+  const chunks = await Promise.all(
+    cats.map((c) => loadCategory(query.lang, c)),
+  );
   return chunks.flat();
 }
 
-export async function getQuestions(query: QuestionQuery): Promise<QuizQuestion[]> {
+export async function getQuestions(
+  query: QuestionQuery,
+): Promise<QuizQuestion[]> {
   return selectQuestions(await loadPool(query), query);
 }
 
@@ -27,8 +51,13 @@ export async function countQuestions(query: QuestionQuery): Promise<number> {
   return filterQuestions(await loadPool(query), query).length;
 }
 
-export async function getQuestionById(lang: Lang, id: string): Promise<QuizQuestion | undefined> {
-  const category = CATEGORY_IDS[lang].find((cat) => id.startsWith(`${lang}-${cat}-`));
+export async function getQuestionById(
+  lang: Lang,
+  id: string,
+): Promise<QuizQuestion | undefined> {
+  const category = CATEGORY_IDS[lang].find((cat) =>
+    id.startsWith(`${lang}-${cat}-`),
+  );
   if (!category) return undefined;
   return (await loadCategory(lang, category)).find((q) => q.id === id);
 }

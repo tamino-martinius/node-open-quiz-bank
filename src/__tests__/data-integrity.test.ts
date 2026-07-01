@@ -15,7 +15,10 @@ test('de data is valid', () => {
 });
 
 test('manifest counts exactly match actual per-category counts (both directions)', () => {
-  const actual = { en: {} as Record<string, number>, de: {} as Record<string, number> };
+  const actual = {
+    en: {} as Record<string, number>,
+    de: {} as Record<string, number>,
+  };
   for (const q of EN) actual.en[q.tags[0]] = (actual.en[q.tags[0]] ?? 0) + 1;
   for (const q of DE) actual.de[q.tags[0]] = (actual.de[q.tags[0]] ?? 0) + 1;
   expect(actual.en).toEqual(COUNTS.en);

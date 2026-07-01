@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: '${{ matrix.node }}', cache: npm }
       - run: npm ci
-      - name: Test source (lint + jest)
+      - name: Test source (lint + vitest)
         run: npm test
       - name: Helper script unit tests
         run: npm run test:scripts

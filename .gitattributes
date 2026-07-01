@@ -1,2 +1,4 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Auto-detect text files, normalize to LF in the repo, and check them out with
+# LF on every platform (incl. Windows) so Biome's `lineEnding: "lf"` formatter
+# check passes in CI.
+* text=auto eol=lf
