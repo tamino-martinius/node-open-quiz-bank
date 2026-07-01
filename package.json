@@ -2,7 +2,7 @@
   "name": "open-quiz-bank",
   "version": "0.0.0",
   "description": "Open, seedable bilingual (de/en) quiz question bank with a small query API. Code MIT, questions CC0.",
-  "author": "Tamino Martinius <dev@zaku.eu>",
+  "author": "Tamino Martinius <io@tamino.dev>",
   "license": "MIT",
   "main": "./dist/index.js",
   "module": "./esm/index.js",
