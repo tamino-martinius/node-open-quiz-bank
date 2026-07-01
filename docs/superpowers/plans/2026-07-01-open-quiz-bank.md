@@ -1224,12 +1224,13 @@ git commit -m "feat: add async main entry with lazy per-category loading"
 ### Task 12: Sync per-language entries (`src/en.ts`, `src/de.ts`)
 
 **Files:**
-- Create: `src/en.ts`, `src/de.ts`
+- Create: `src/core/language-api.ts`, `src/en.ts`, `src/de.ts`
 - Test: `src/en.test.ts`
 
 **Interfaces:**
-- Consumes: `QUESTIONS` from `./data/<lang>/index.js`; core selectors + `createQuizFromPool` + `toChoices` + `CATEGORIES` + `CATEGORY_IDS`.
-- Produces (sync): `getQuestions(query: Omit<QuestionQuery,'lang'>)`, `countQuestions`, `getQuestionById(id)`, `getCategories()`, `createQuiz`; re-exports `toChoices`, types.
+- Consumes: `QUESTIONS` from `./data/<lang>/index.js`; core selectors + `createQuizFromPool` + `CATEGORIES`; `CATEGORY_IDS` from manifest.
+- Produces: `createLanguageApi(questions, categoryIds): LanguageApi` in `src/core/language-api.ts` (the shared sync implementation). Each per-language entry exposes (sync): `getQuestions(query?: Omit<QuestionQuery,'lang'>)`, `countQuestions`, `getQuestionById(id)`, `getCategories()`, `createQuiz`; re-exports `toChoices`, types.
+- Rationale: the per-language entries are pure wiring over one shared factory, so the selection/session logic is defined once (no duplicated logic block across `en.ts`/`de.ts`).
 
 - [ ] **Step 1: Write failing test `src/en.test.ts`** (parity with the async main entry)
 
@@ -1254,68 +1255,73 @@ test('sync getCategories and getQuestionById work without await', () => {
 
 Run: `npm test -- en`
 
-- [ ] **Step 3: Write `src/en.ts`**
+- [ ] **Step 3: Write the shared factory `src/core/language-api.ts`**
 
 ```ts
-import type { QuizQuestion, QuestionQuery, CategoryMeta, Quiz } from './types.js';
-import { QUESTIONS } from './data/en/index.js';
-import { selectQuestions, filterQuestions } from './core/select.js';
-import { createQuizFromPool } from './core/quiz.js';
-import { CATEGORIES } from './core/categories.js';
-import { CATEGORY_IDS } from './core/manifest.js';
-
-export type { QuizQuestion, QuestionQuery, CategoryMeta, Quiz, Lang, Difficulty, DifficultyRange, Choices } from './types.js';
-export { toChoices } from './core/choices.js';
+import type { QuizQuestion, QuestionQuery, CategoryMeta, Quiz } from '../types.js';
+import { selectQuestions, filterQuestions } from './select.js';
+import { createQuizFromPool } from './quiz.js';
+import { CATEGORIES } from './categories.js';
 
 type Query = Omit<QuestionQuery, 'lang'>;
 
-export function getQuestions(query: Query = {}): QuizQuestion[] {
-  return selectQuestions(QUESTIONS, query);
+export interface LanguageApi {
+  getQuestions(query?: Query): QuizQuestion[];
+  countQuestions(query?: Query): number;
+  getQuestionById(id: string): QuizQuestion | undefined;
+  getCategories(): CategoryMeta[];
+  createQuiz(query?: Query): Quiz;
 }
-export function countQuestions(query: Query = {}): number {
-  return filterQuestions(QUESTIONS, query).length;
-}
-export function getQuestionById(id: string): QuizQuestion | undefined {
-  return QUESTIONS.find((q) => q.id === id);
-}
-export function getCategories(): CategoryMeta[] {
-  return CATEGORY_IDS.en.map((id) => CATEGORIES[id]);
-}
-export function createQuiz(query: Query = {}): Quiz {
-  return createQuizFromPool(QUESTIONS, query);
+
+/** Build the synchronous, single-language API over an in-memory question pool. */
+export function createLanguageApi(
+  questions: readonly QuizQuestion[],
+  categoryIds: readonly string[],
+): LanguageApi {
+  return {
+    getQuestions: (query = {}) => selectQuestions(questions, query),
+    countQuestions: (query = {}) => filterQuestions(questions, query).length,
+    getQuestionById: (id) => questions.find((q) => q.id === id),
+    getCategories: () => categoryIds.map((id) => CATEGORIES[id]),
+    createQuiz: (query = {}) => createQuizFromPool(questions, query),
+  };
 }
 ```
 
-- [ ] **Step 4: Write `src/de.ts`** — identical to `en.ts` but import `./data/de/index.js` and use `CATEGORY_IDS.de`.
+- [ ] **Step 4: Write `src/en.ts` and `src/de.ts`** (thin wiring — the logic lives in the factory)
 
+`src/en.ts`:
 ```ts
-import type { QuizQuestion, QuestionQuery, CategoryMeta, Quiz } from './types.js';
-import { QUESTIONS } from './data/de/index.js';
-import { selectQuestions, filterQuestions } from './core/select.js';
-import { createQuizFromPool } from './core/quiz.js';
-import { CATEGORIES } from './core/categories.js';
+import { QUESTIONS } from './data/en/index.js';
 import { CATEGORY_IDS } from './core/manifest.js';
+import { createLanguageApi } from './core/language-api.js';
 
 export type { QuizQuestion, QuestionQuery, CategoryMeta, Quiz, Lang, Difficulty, DifficultyRange, Choices } from './types.js';
 export { toChoices } from './core/choices.js';
 
-type Query = Omit<QuestionQuery, 'lang'>;
+const api = createLanguageApi(QUESTIONS, CATEGORY_IDS.en);
+export const getQuestions = api.getQuestions;
+export const countQuestions = api.countQuestions;
+export const getQuestionById = api.getQuestionById;
+export const getCategories = api.getCategories;
+export const createQuiz = api.createQuiz;
+```
 
-export function getQuestions(query: Query = {}): QuizQuestion[] {
-  return selectQuestions(QUESTIONS, query);
-}
-export function countQuestions(query: Query = {}): number {
-  return filterQuestions(QUESTIONS, query).length;
-}
-export function getQuestionById(id: string): QuizQuestion | undefined {
-  return QUESTIONS.find((q) => q.id === id);
-}
-export function getCategories(): CategoryMeta[] {
-  return CATEGORY_IDS.de.map((id) => CATEGORIES[id]);
-}
-export function createQuiz(query: Query = {}): Quiz {
-  return createQuizFromPool(QUESTIONS, query);
-}
+`src/de.ts`:
+```ts
+import { QUESTIONS } from './data/de/index.js';
+import { CATEGORY_IDS } from './core/manifest.js';
+import { createLanguageApi } from './core/language-api.js';
+
+export type { QuizQuestion, QuestionQuery, CategoryMeta, Quiz, Lang, Difficulty, DifficultyRange, Choices } from './types.js';
+export { toChoices } from './core/choices.js';
+
+const api = createLanguageApi(QUESTIONS, CATEGORY_IDS.de);
+export const getQuestions = api.getQuestions;
+export const countQuestions = api.countQuestions;
+export const getQuestionById = api.getQuestionById;
+export const getCategories = api.getCategories;
+export const createQuiz = api.createQuiz;
 ```
 
 - [ ] **Step 5: Run — verify PASS**
@@ -1325,8 +1331,8 @@ Run: `npm test -- en`
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/en.ts src/de.ts src/en.test.ts
-git commit -m "feat: add sync per-language entries (open-quiz-bank/en, /de)"
+git add src/core/language-api.ts src/en.ts src/de.ts src/en.test.ts
+git commit -m "feat: add sync per-language entries via shared language-api factory"
 ```
 
 ---
