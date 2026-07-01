@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as main from 'open-quiz-bank';
 import * as en from 'open-quiz-bank/en';
+import * as de from 'open-quiz-bank/de';
 
 test('ESM: main entry getQuestions is async and deterministic', async () => {
   assert.equal(typeof main.getQuestions, 'function');
@@ -20,4 +21,10 @@ test('ESM: toChoices is exported', () => {
   const c = en.toChoices(q, 1);
   assert.equal(c.options.length, 4);
   assert.equal(c.options[c.correctIndex], q.answer);
+});
+
+test('ESM: /de subpath works', () => {
+  const r = de.getQuestions({ categories: ['film'], count: 2, seed: 1 });
+  assert.equal(r.length, 2);
+  assert.ok(de.getCategories().length >= 16);
 });
