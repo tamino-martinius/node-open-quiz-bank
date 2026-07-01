@@ -42,7 +42,14 @@ test('selectQuestions is deterministic for a seed and respects count', () => {
 });
 
 test('spreadDifficulty round-robins across difficulty buckets', () => {
-  const out = selectQuestions(bank, { seed: 1, spreadDifficulty: true });
-  // 4 distinct difficulties (1,3,2,5) → first four cover all buckets once
-  expect(new Set(out.slice(0, 4).map((q) => q.difficulty)).size).toBe(4);
+  const spreadBank: QuizQuestion[] = [
+    Q('en-a-1', 1, ['a']), Q('en-a-2', 1, ['a']), Q('en-a-3', 1, ['a']),
+    Q('en-b-1', 2, ['b']), Q('en-b-2', 2, ['b']), Q('en-b-3', 2, ['b']),
+  ];
+  const out = selectQuestions(spreadBank, { seed: 1, spreadDifficulty: true });
+  // Round-robin over difficulty buckets sorted ascending: 1,2,1,2,1,2 — this
+  // interleaving is seed-independent (seed only permutes WITHIN each bucket).
+  expect(out.map((q) => q.difficulty)).toEqual([1, 2, 1, 2, 1, 2]);
+  // and it must still be a permutation of the whole pool
+  expect(out.map((q) => q.id).sort()).toEqual(spreadBank.map((q) => q.id).sort());
 });
