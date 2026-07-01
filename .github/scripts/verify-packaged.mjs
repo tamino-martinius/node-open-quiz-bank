@@ -38,25 +38,27 @@ try {
   step('copy smoke consumers', () => {
     copyFileSync(join(here, 'smoke', 'consumer.cjs'), join(tmp, 'consumer.cjs'));
     copyFileSync(join(here, 'smoke', 'consumer.mjs'), join(tmp, 'consumer.mjs'));
-  });
+  }, { critical: true });
   step('runtime: CommonJS require()', () => run(node, ['--test', 'consumer.cjs'], { cwd: tmp }));
   step('runtime: ESM import', () => run(node, ['--test', 'consumer.mjs'], { cwd: tmp }));
 
   const tscBin = join(tmp, 'node_modules', 'typescript', 'bin', 'tsc');
-  const useMain = "import { getQuestions } from 'open-quiz-bank';\nexport const a = getQuestions({ lang: 'en', seed: 1 });\n";
+  const useMain = "import { getQuestions, type QuizQuestion } from 'open-quiz-bank';\nexport const a: Promise<QuizQuestion[]> = getQuestions({ lang: 'en', seed: 1 });\n";
   const useSub = "import { getQuestions } from 'open-quiz-bank/en';\nexport const b: string[] = getQuestions({ seed: 1 }).map((q) => q.id);\n";
+  const useDe = "import { getQuestions } from 'open-quiz-bank/de';\nexport const d: string[] = getQuestions({ seed: 1 }).map((q) => q.id);\n";
   function typeCase(dir, pkgType, modes) {
     const d = join(tmp, dir);
     mkdirSync(d, { recursive: true });
     if (pkgType) writeFileSync(join(d, 'package.json'), JSON.stringify({ type: pkgType }) + '\n');
     writeFileSync(join(d, 'use_main.ts'), useMain);
     writeFileSync(join(d, 'use_sub.ts'), useSub);
+    writeFileSync(join(d, 'use_de.ts'), useDe);
     for (const m of modes) {
       step(`types: ${dir} (module=${m.module}, moduleResolution=${m.moduleResolution})`, () => {
         const extra = m.ignoreDeprecations ? ['--ignoreDeprecations', m.ignoreDeprecations] : [];
         run(node, [tscBin, '--noEmit', '--strict', '--skipLibCheck', '--target', 'es2022',
           '--module', m.module, '--moduleResolution', m.moduleResolution, ...extra,
-          join(d, 'use_main.ts'), join(d, 'use_sub.ts')], { cwd: tmp });
+          join(d, 'use_main.ts'), join(d, 'use_sub.ts'), join(d, 'use_de.ts')], { cwd: tmp });
       });
     }
   }
