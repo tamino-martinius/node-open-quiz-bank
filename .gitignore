@@ -10,3 +10,6 @@ release-notes.md
 dist
 esm
 *.tgz
+
+# Superpowers planning/spec docs — local working notes, kept out of the repo.
+docs/superpowers/
