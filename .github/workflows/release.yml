@@ -44,7 +44,7 @@ jobs:
         run: |
           echo "::error::release may only be dispatched from main (got $REF_NAME)"
           exit 1
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Validate version input
@@ -63,7 +63,7 @@ jobs:
             echo "::error::tag v$VERSION already exists on origin"
             exit 1
           fi
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: lts/*
           cache: npm
@@ -115,13 +115,13 @@ jobs:
       - name: Pack tarball
         run: npm pack
       - name: Upload tarball
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-tarball
           path: '*.tgz'
           if-no-files-found: error
       - name: Upload mutated files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-files
           path: |
@@ -143,14 +143,14 @@ jobs:
           - 24.x # Active LTS      — EOL 2026-10-20 / 2028-04-30
           - 26.x # Current         — EOL 2027-10-27 / 2029-04-30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci
       - name: Download tarball
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: release-tarball
       - name: Verify packaged artifact (CJS + ESM + types)
@@ -163,20 +163,20 @@ jobs:
     needs: [build, verify]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: main
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: lts/*
           registry-url: https://registry.npmjs.org
       - name: Restore released files
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: release-files
       - name: Restore tarball
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: release-tarball
       - name: Upgrade npm (OIDC trusted publishing)
