@@ -114,7 +114,7 @@ const { options, correctIndex } = toChoices(q, 5);
 | Function | Signature | Returns |
 |----------|-----------|---------|
 | `getQuestions` | `(query: QuestionQuery) => Promise<QuizQuestion[]>` | Filtered + seeded selection |
-| `countQuestions` | `(query: QuestionQuery) => Promise<number>` | Count without loading all data |
+| `countQuestions` | `(query: QuestionQuery) => Promise<number>` | Count matching questions (loads only the queried categories) |
 | `getQuestionById` | `(lang: Lang, id: string) => Promise<QuizQuestion \| undefined>` | Single question by ID |
 | `getCategories` | `(lang: Lang) => CategoryMeta[]` | Category list (sync) |
 | `createQuiz` | `(query: QuestionQuery) => Promise<Quiz>` | Stateful quiz session |
@@ -127,7 +127,7 @@ Same function names, all synchronous; no `lang` parameter needed.
 | Function | Signature | Returns |
 |----------|-----------|---------|
 | `getQuestions` | `(query?: Omit<QuestionQuery, 'lang'>) => QuizQuestion[]` | Filtered + seeded selection |
-| `countQuestions` | `(query?: Omit<QuestionQuery, 'lang'>) => number` | Count |
+| `countQuestions` | `(query?: Omit<QuestionQuery, 'lang'>) => number` | Count matching questions |
 | `getQuestionById` | `(id: string) => QuizQuestion \| undefined` | Single question by ID |
 | `getCategories` | `() => CategoryMeta[]` | Category list |
 | `createQuiz` | `(query?: Omit<QuestionQuery, 'lang'>) => Quiz` | Stateful quiz session |
