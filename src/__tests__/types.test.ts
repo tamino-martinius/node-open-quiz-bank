@@ -10,7 +10,11 @@ test('types compile and shape a question', () => {
     tags: ['geography', 'capitals'],
     difficulty: 1,
   };
-  const query: QuestionQuery = { lang: 'en', categories: ['geography'], seed: 1 };
+  const query: QuestionQuery = {
+    lang: 'en',
+    categories: ['geography'],
+    seed: 1,
+  };
   expect(q.id).toMatch(/^en-geography-/);
   expect(query.lang).toBe('en');
 });

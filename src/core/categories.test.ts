@@ -2,8 +2,22 @@ import { CATEGORIES } from './categories.js';
 
 test('every expected category has en+de labels and an icon', () => {
   const ids = [
-    'geography','history','science','nature','arts','technology','sports','math',
-    'food','space','mythology','music','language','film','popculture','videogames',
+    'geography',
+    'history',
+    'science',
+    'nature',
+    'arts',
+    'technology',
+    'sports',
+    'math',
+    'food',
+    'space',
+    'mythology',
+    'music',
+    'language',
+    'film',
+    'popculture',
+    'videogames',
   ];
   for (const id of ids) {
     const meta = CATEGORIES[id];
