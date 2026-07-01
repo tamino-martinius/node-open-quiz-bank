@@ -21,6 +21,13 @@ test('getQuestionById finds by id', async () => {
 test('getCategories is per-language and sync', () => {
   expect(getCategories('en').map((c) => c.id)).not.toContain('popculture');
   expect(getCategories('de').map((c) => c.id)).toContain('popculture');
+  expect(getCategories('en')).toHaveLength(14);
+  expect(getCategories('de')).toHaveLength(16);
+});
+
+test('getQuestionById returns undefined when the id lang does not match', async () => {
+  const [q] = await getQuestions({ lang: 'en', categories: ['geography'], count: 1, seed: 2 });
+  expect(await getQuestionById('de', q.id)).toBeUndefined();
 });
 
 test('createQuiz resolves a session that walks without repeats', async () => {
@@ -28,4 +35,13 @@ test('createQuiz resolves a session that walks without repeats', async () => {
   const first = quiz.next();
   const second = quiz.next();
   expect(first!.id).not.toBe(second!.id);
+});
+
+test('createQuiz walks several questions without repeats', async () => {
+  const quiz = await createQuiz({ lang: 'en', categories: ['space'], seed: 3 });
+  const ids = [quiz.next(), quiz.next(), quiz.next(), quiz.next(), quiz.next()]
+    .filter(Boolean)
+    .map((q) => q!.id);
+  expect(new Set(ids).size).toBe(ids.length);
+  expect(ids.length).toBeGreaterThanOrEqual(5);
 });

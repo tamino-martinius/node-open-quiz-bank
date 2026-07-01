@@ -28,8 +28,8 @@ export async function countQuestions(query: QuestionQuery): Promise<number> {
 }
 
 export async function getQuestionById(lang: Lang, id: string): Promise<QuizQuestion | undefined> {
-  const category = id.split('-')[1];
-  if (!category || !CATEGORY_IDS[lang].includes(category)) return undefined;
+  const category = CATEGORY_IDS[lang].find((cat) => id.startsWith(`${lang}-${cat}-`));
+  if (!category) return undefined;
   return (await loadCategory(lang, category)).find((q) => q.id === id);
 }
 
