@@ -12,7 +12,7 @@ function categoriesOf(lang) {
     .sort();
 }
 function countIds(file) {
-  return (readFileSync(file, 'utf8').match(/^ {6}id: '/gm) || []).length;
+  return (readFileSync(file, 'utf8').match(/^[ \t]*id: '/gm) || []).length;
 }
 
 const CATEGORY_IDS = {};
