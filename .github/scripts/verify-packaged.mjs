@@ -42,6 +42,31 @@ try {
   step('runtime: CommonJS require()', () => run(node, ['--test', 'consumer.cjs'], { cwd: tmp }));
   step('runtime: ESM import', () => run(node, ['--test', 'consumer.mjs'], { cwd: tmp }));
 
+  step('bundling: esbuild bundles the async root entry and it actually loads data', () => {
+    npmInstall(['install', 'esbuild@latest', '--no-audit', '--no-fund', '--silent'], tmp);
+    writeFileSync(
+      join(tmp, 'bundle-entry.mjs'),
+      "import { getQuestions } from 'open-quiz-bank';\n" +
+        "const r = await getQuestions({ lang: 'en', count: 1 });\n" +
+        "if (!r.length || typeof r[0].prompt !== 'string') throw new Error('bundled root import returned no data');\n" +
+        "console.log('BUNDLE_OK');\n",
+    );
+    run(
+      node,
+      [
+        join(tmp, 'node_modules', 'esbuild', 'bin', 'esbuild'),
+        'bundle-entry.mjs',
+        '--bundle',
+        '--platform=node',
+        '--format=esm',
+        '--outfile=bundle.mjs',
+      ],
+      { cwd: tmp },
+    );
+    const out = execFileSync(node, [join(tmp, 'bundle.mjs')], { cwd: tmp, encoding: 'utf8' });
+    if (out.trim() !== 'BUNDLE_OK') throw new Error(`unexpected bundle output: ${out}`);
+  });
+
   const tscBin = join(tmp, 'node_modules', 'typescript', 'bin', 'tsc');
   const useMain = "import { getQuestions, type QuizQuestion } from 'open-quiz-bank';\nexport const a: Promise<QuizQuestion[]> = getQuestions({ lang: 'en', seed: 1 });\n";
   const useSub = "import { getQuestions } from 'open-quiz-bank/en';\nexport const b: string[] = getQuestions({ seed: 1 }).map((q) => q.id);\n";
