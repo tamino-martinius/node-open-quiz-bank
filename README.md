@@ -196,7 +196,7 @@ interface CategoryMeta {
 
 ## Bundler code-splitting note
 
-The main entry (`open-quiz-bank`) uses dynamic `import('./data/${lang}/${category}.js')` expressions with a literal path prefix. Bundlers that analyse static import patterns (Webpack, Vite, esbuild) will code-split each category into its own chunk automatically. If you only ever query a single language or a few categories, your bundle will only include those chunks.
+The main entry (`open-quiz-bank`) loads each category through a generated map of one literal `import('./data/<lang>/<category>.js')` call per category (`src/core/loaders.ts`, built by `scripts/build-manifest.mjs`). Because every import target is a literal string, bundlers that analyse static import patterns (Webpack, Vite, esbuild) code-split each category into its own chunk automatically. If you only ever query a single language or a few categories, your bundle will only include those chunks.
 
 The per-language entries (`/en`, `/de`) eagerly import everything for that language; prefer them for server-side usage where startup cost is acceptable and you want the simpler sync API.
 
