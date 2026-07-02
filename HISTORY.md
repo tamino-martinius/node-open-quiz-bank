@@ -2,6 +2,10 @@
 
 ## vNext
 
+TBD
+
+## v1.0.1
+
 - **Data:** added ~700 questions (427 English, 305 German) across existing categories and removed 32 answer-dependent "which of these" questions that couldn't be answered without their listed choices; regenerated the manifest. The bank is now English (14 categories, 3,282 questions) and German (16 categories, 5,364 questions) — ~8,646 in all.
 - **Fix:** the async root entry's lazy per-category loading now uses a static, generated loader map instead of a template-literal `import()`, so it actually code-splits under bundlers (Vite/webpack/esbuild) as documented — previously the dynamic import silently broke in bundled output. No API changes.
 
