@@ -9,6 +9,7 @@ import { selectQuestions, filterQuestions } from './core/select.js';
 import { createQuizFromPool } from './core/quiz.js';
 import { CATEGORIES } from './core/categories.js';
 import { CATEGORY_IDS } from './core/manifest.js';
+import { LOADERS } from './core/loaders.js';
 
 export type {
   QuizQuestion,
@@ -22,14 +23,13 @@ export type {
 } from './types.js';
 export { toChoices } from './core/choices.js';
 
-// The literal './data/' prefix lets bundlers (Webpack/Vite/esbuild) code-split each category.
 async function loadCategory(
   lang: Lang,
   category: string,
 ): Promise<readonly QuizQuestion[]> {
-  const mod = (await import(`./data/${lang}/${category}.js`)) as {
-    QUESTIONS: readonly QuizQuestion[];
-  };
+  const load = LOADERS[lang][category];
+  if (!load) return [];
+  const mod = await load();
   return mod.QUESTIONS;
 }
 

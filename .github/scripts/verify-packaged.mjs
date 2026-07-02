@@ -43,7 +43,7 @@ try {
   step('runtime: ESM import', () => run(node, ['--test', 'consumer.mjs'], { cwd: tmp }));
 
   step('bundling: esbuild bundles the async root entry and it actually loads data', () => {
-    npmInstall(['install', 'esbuild@latest', '--no-audit', '--no-fund', '--silent'], tmp);
+    npmInstall(['install', 'esbuild', '--no-audit', '--no-fund', '--silent'], tmp);
     writeFileSync(
       join(tmp, 'bundle-entry.mjs'),
       "import { getQuestions } from 'open-quiz-bank';\n" +
@@ -52,9 +52,9 @@ try {
         "console.log('BUNDLE_OK');\n",
     );
     run(
-      node,
+      'npx',
       [
-        join(tmp, 'node_modules', 'esbuild', 'bin', 'esbuild'),
+        'esbuild',
         'bundle-entry.mjs',
         '--bundle',
         '--platform=node',

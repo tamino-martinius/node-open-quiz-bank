@@ -17,6 +17,7 @@ function countIds(file) {
 
 const CATEGORY_IDS = {};
 const COUNTS = {};
+const loaderSections = [];
 for (const lang of langs) {
   const cats = categoriesOf(lang);
   CATEGORY_IDS[lang] = cats;
@@ -32,6 +33,14 @@ for (const lang of langs) {
     `export const BY_CATEGORY: Record<string, readonly QuizQuestion[]> = { ${cats.join(', ')} };\n` +
     `export const QUESTIONS: readonly QuizQuestion[] = [${cats.map((c) => `...${c}`).join(', ')}];\n`;
   writeFileSync(join(DATA, lang, 'index.ts'), barrel);
+
+  // Static loader map entries — every import() target is a literal string so
+  // bundlers (Vite/webpack/esbuild) can statically analyze and code-split each
+  // category, unlike a runtime-computed path.
+  const entries = cats
+    .map((c) => `    ${JSON.stringify(c)}: () => import('../data/${lang}/${c}.js'),`)
+    .join('\n');
+  loaderSections.push(`  ${JSON.stringify(lang)}: {\n${entries}\n  },`);
 }
 
 const manifest =
@@ -40,4 +49,11 @@ const manifest =
   `export const COUNTS: Record<Lang, Readonly<Record<string, number>>> = ${JSON.stringify(COUNTS, null, 2)};\n`;
 writeFileSync(join('src', 'core', 'manifest.ts'), manifest);
 
-console.log('Generated manifest.ts and per-language barrels.');
+const loaders =
+  `import type { Lang, QuizQuestion } from '../types.js';\n\n` +
+  `type CategoryModule = { QUESTIONS: readonly QuizQuestion[] };\n\n` +
+  `/** One literal-path import() per category — required so bundlers can code-split; see build-manifest.mjs. */\n` +
+  `export const LOADERS: Record<Lang, Record<string, () => Promise<CategoryModule>>> = {\n${loaderSections.join('\n')}\n};\n`;
+writeFileSync(join('src', 'core', 'loaders.ts'), loaders);
+
+console.log('Generated manifest.ts, loaders.ts, and per-language barrels.');
