@@ -12,3 +12,4 @@
 - **Dual CJS + ESM build** (`dist/` + `esm/`) with full TypeScript declarations.
 - **Data license CC0-1.0, code license MIT.**
 - **CI** (lint + test + build on every push/PR) and **OIDC-based automated npm release** workflow.
+- **Fix:** the async root entry's lazy per-category loading now uses a static, generated loader map instead of a template-literal `import()`, so it actually code-splits under bundlers (Vite/webpack/esbuild) as documented — previously the dynamic import silently broke in bundled output. No API changes.

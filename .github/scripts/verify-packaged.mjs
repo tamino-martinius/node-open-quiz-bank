@@ -42,6 +42,36 @@ try {
   step('runtime: CommonJS require()', () => run(node, ['--test', 'consumer.cjs'], { cwd: tmp }));
   step('runtime: ESM import', () => run(node, ['--test', 'consumer.mjs'], { cwd: tmp }));
 
+  step('bundling: Rollup (the bundler behind Vite/webpack production builds) bundles the async root entry and it actually loads data', () => {
+    npmInstall(['install', 'rollup@latest', '@rollup/plugin-node-resolve@latest', '--no-audit', '--no-fund', '--silent'], tmp);
+    writeFileSync(
+      join(tmp, 'bundle-entry.mjs'),
+      "import { getQuestions } from 'open-quiz-bank';\n" +
+        "const r = await getQuestions({ lang: 'en', count: 1 });\n" +
+        "if (!r.length || typeof r[0].prompt !== 'string') throw new Error('bundled root import returned no data');\n" +
+        "console.log('BUNDLE_OK');\n",
+    );
+    // Use Rollup's JS API, not esbuild: esbuild has built-in "glob-import"
+    // resolution for a dynamic import() with a template-literal path, so it
+    // silently and correctly bundles this exact bug pattern — it would never
+    // go red. Rollup (what Vite's production build actually uses) has no such
+    // resolution; it builds without error but the output 404s at runtime on
+    // the real bug, which is the actual, faithful failure mode being guarded
+    // against. This also sidesteps the Windows `npx` ENOENT problem esbuild's
+    // CLI invocation had, since it's a plain Node script run via `node`.
+    writeFileSync(
+      join(tmp, 'run-rollup.mjs'),
+      "import { rollup } from 'rollup';\n" +
+        "import resolve from '@rollup/plugin-node-resolve';\n" +
+        "const bundle = await rollup({ input: 'bundle-entry.mjs', plugins: [resolve()] });\n" +
+        "await bundle.write({ dir: 'bundle-out', format: 'esm', entryFileNames: '[name].mjs', chunkFileNames: '[name]-[hash].mjs' });\n" +
+        "await bundle.close();\n",
+    );
+    run(node, [join(tmp, 'run-rollup.mjs')], { cwd: tmp });
+    const out = execFileSync(node, [join(tmp, 'bundle-out', 'bundle-entry.mjs')], { cwd: tmp, encoding: 'utf8' });
+    if (out.trim() !== 'BUNDLE_OK') throw new Error(`unexpected bundle output: ${out}`);
+  });
+
   const tscBin = join(tmp, 'node_modules', 'typescript', 'bin', 'tsc');
   const useMain = "import { getQuestions, type QuizQuestion } from 'open-quiz-bank';\nexport const a: Promise<QuizQuestion[]> = getQuestions({ lang: 'en', seed: 1 });\n";
   const useSub = "import { getQuestions } from 'open-quiz-bank/en';\nexport const b: string[] = getQuestions({ seed: 1 }).map((q) => q.id);\n";
