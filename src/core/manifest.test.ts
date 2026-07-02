@@ -7,8 +7,8 @@ test('manifest lists per-language categories and counts summing to totals', () =
   expect(CATEGORY_IDS.en).not.toContain('popculture');
   const sum = (r: Readonly<Record<string, number>>) =>
     Object.values(r).reduce((a, b) => a + b, 0);
-  expect(sum(COUNTS.en)).toBe(2871);
-  expect(sum(COUNTS.de)).toBe(5075);
+  expect(sum(COUNTS.en)).toBe(3282);
+  expect(sum(COUNTS.de)).toBe(5364);
 });
 
 test('every manifest category id has metadata (no manifest→meta drift)', () => {

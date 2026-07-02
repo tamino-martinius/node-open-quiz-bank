@@ -317,20 +317,6 @@ export const QUESTIONS: readonly QuizQuestion[] = [
       difficulty: 5,
     },
   {
-      id: 'de-videogames-0f7a8ef6ff8e',
-      lang: 'de',
-      prompt:
-        "Die Trolle geben ihren Hauptstädten oft den Beinamen „Zul'“. Nenne zwei dieser Städte.",
-      answer: "Zul'Gurub und Zul'Aman (auch Zul'Drak, Zul'Farrak)",
-      distractors: [
-        "Gundrak und Drak'Tharon",
-        'Echsenkessel und Schattenmondtal',
-        "Sen'jin und Echo-Inseln",
-      ],
-      tags: ['videogames'],
-      difficulty: 4,
-    },
-  {
       id: 'de-videogames-0fa6fbde2a37',
       lang: 'de',
       prompt:
@@ -3844,16 +3830,6 @@ export const QUESTIONS: readonly QuizQuestion[] = [
       difficulty: 4,
     },
   {
-      id: 'de-videogames-c946a2e7fc3a',
-      lang: 'de',
-      prompt:
-        "Welcher dieser Titel ist KEIN offizieller Teil der 'Counter-Strike'-Reihe, sondern eine inoffizielle Fan-Umsetzung?",
-      answer: 'Counter-Strike 2D',
-      distractors: ['Counter-Strike: Condition Zero', 'Counter-Strike Neo', 'Counter-Strike: Source'],
-      tags: ['videogames'],
-      difficulty: 5,
-    },
-  {
       id: 'de-videogames-ca8cc33baa2c',
       lang: 'de',
       prompt: 'Wie heißt der schwebende Begleiter, der den Reisenden in Genshin Impact begleitet?',
@@ -4769,5 +4745,23 @@ export const QUESTIONS: readonly QuizQuestion[] = [
       distractors: ['1995', '1999', '2001'],
       tags: ['videogames'],
       difficulty: 3,
+    },
+  {
+      id: 'de-videogames-f96d6716748d',
+      lang: 'de',
+      prompt: 'Das Taschenmonster-Franchise Pokémon debütierte 1996 mit zwei Game-Boy-Spielen. In welchem Land hat dieses Franchise seinen Ursprung?',
+      answer: 'Japan',
+      distractors: ['Südkorea', 'Taiwan', 'Vereinigte Staaten'],
+      tags: ['videogames'],
+      difficulty: 1,
+    },
+  {
+      id: 'de-videogames-723a7b1c30b4',
+      lang: 'de',
+      prompt: 'Wie heißt Marios größerer, grün gekleideter Bruder in Nintendos Super-Mario-Reihe?',
+      answer: 'Luigi',
+      distractors: ['Wario', 'Yoshi', 'Toad'],
+      tags: ['videogames'],
+      difficulty: 1,
     },
 ];

@@ -26,6 +26,6 @@ test('manifest counts exactly match actual per-category counts (both directions)
 });
 
 test('totals hold', () => {
-  expect(EN).toHaveLength(2871);
-  expect(DE).toHaveLength(5075);
+  expect(EN).toHaveLength(3282);
+  expect(DE).toHaveLength(5364);
 });

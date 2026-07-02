@@ -26,7 +26,7 @@ test('getQuestions loads a category lazily and is deterministic', async () => {
 
 test('countQuestions counts matches', async () => {
   expect(await countQuestions({ lang: 'en', categories: ['geography'] })).toBe(
-    539,
+    557,
   );
 });
 
