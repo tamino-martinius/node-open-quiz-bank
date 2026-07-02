@@ -2,6 +2,10 @@
 
 ## vNext
 
+TBD
+
+## v1.0.0
+
 - **Package created:** initial release of `open-quiz-bank`.
 - **Async main entry** (`open-quiz-bank`): `getQuestions`, `countQuestions`, `getQuestionById`, `getCategories`, `createQuiz`, `toChoices` — lazy per-category loading enables bundler code-splitting.
 - **Sync per-language entries** (`open-quiz-bank/en`, `open-quiz-bank/de`): same API surface without `await`; eagerly loads all questions for the selected language.
