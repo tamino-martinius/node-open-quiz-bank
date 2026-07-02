@@ -6,7 +6,9 @@ name: Release
 #      Publishing is tokenless via OIDC `--provenance`; without this, the publish step fails.
 #   2. Settings -> Actions -> General -> Workflow permissions: enable
 #      "Allow GitHub Actions to create and approve pull requests" so the publish job
-#      can open the version-bump PR to main.
+#      can open the version-bump PR to main. If this is off, the release still
+#      publishes successfully — the workflow just prints a manual "open PR" link in
+#      the run summary instead of failing.
 # This workflow NEVER pushes to main directly. It publishes to npm, tags the release,
 # pushes a `release/v<version>` branch, and opens a PR to main that you merge manually
 # (use a merge commit so the v<version> tag stays in main history).
@@ -226,12 +228,22 @@ jobs:
           fi
       # Open a PR so the version bump lands on main through review, not a direct
       # push. Merge it manually (merge commit) to keep the v<version> tag in history.
+      #
+      # By this point the release has ALREADY fully succeeded (npm publish, tag,
+      # branch, GitHub release), so opening this convenience PR must never fail the
+      # run. The step is idempotent (skips if a PR is already open) and degrades
+      # gracefully: if the PR can't be created — almost always because the repo
+      # setting "Allow GitHub Actions to create and approve pull requests" is off —
+      # it emits a warning and a one-click "open PR" link in the run summary instead
+      # of erroring, so a green publish never gets reported as a failed release.
       - name: Open version-bump PR to main
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ inputs.version }}
           DIST_TAG: ${{ needs.build.outputs.dist_tag }}
+          REPO: ${{ github.repository }}
         run: |
+          HEAD_BRANCH="release/v$VERSION"
           {
             echo "Automated release of \`v$VERSION\` (npm dist-tag: \`$DIST_TAG\`)."
             echo
@@ -241,10 +253,34 @@ jobs:
             echo "Merge with a **merge commit** (not squash/rebase) so the \`v$VERSION\` tag stays in main history."
             echo
             echo "- npm: https://www.npmjs.com/package/open-quiz-bank/v/$VERSION"
-            echo "- Release: https://github.com/tamino-martinius/node-open-quiz-bank/releases/tag/v$VERSION"
+            echo "- Release: https://github.com/$REPO/releases/tag/v$VERSION"
           } > "$RUNNER_TEMP/pr-body.md"
-          gh pr create \
-            --base main \
-            --head "release/v$VERSION" \
-            --title "chore(release): v$VERSION" \
-            --body-file "$RUNNER_TEMP/pr-body.md"
+
+          # Idempotent: don't error if a PR from this branch is already open.
+          existing="$(gh pr list --head "$HEAD_BRANCH" --base main --state open --json url --jq '.[0].url // ""')"
+          if [ -n "$existing" ]; then
+            echo "::notice::version-bump PR already open: $existing"
+            echo "Version-bump PR already open: $existing" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          if url="$(gh pr create \
+              --base main \
+              --head "$HEAD_BRANCH" \
+              --title "chore(release): v$VERSION" \
+              --body-file "$RUNNER_TEMP/pr-body.md" 2>&1)"; then
+            echo "Opened version-bump PR: $url"
+            echo "Opened version-bump PR: $url" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::Could not open the version-bump PR automatically: $url"
+            {
+              echo "### ⚠️ Open the version-bump PR manually"
+              echo
+              echo "\`v$VERSION\` is fully published to npm and tagged — only the PR to \`main\` is missing."
+              echo "Most likely cause: **Settings → Actions → General → Workflow permissions →**"
+              echo "**\"Allow GitHub Actions to create and approve pull requests\"** is disabled."
+              echo
+              echo "The \`$HEAD_BRANCH\` branch is already pushed — open the PR here:"
+              echo "<https://github.com/$REPO/compare/main...$HEAD_BRANCH?expand=1>"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
