@@ -1,6 +1,6 @@
 {
   "name": "open-quiz-bank",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Open, seedable bilingual (de/en) quiz question bank with a small query API. Code MIT, questions CC0.",
   "author": "Tamino Martinius <io@tamino.dev>",
   "license": "MIT",
